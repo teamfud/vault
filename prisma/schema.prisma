@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum CredentialKind {
+  USER
+  SERVICE
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  username           String    @unique
+  passwordHash       String
+  role               Role      @default(MEMBER)
+  totpSecret         String? // encrypted, AAD "totp:<userId>"
+  totpLastStep       Int? // last accepted TOTP time step, blocks code replay
+  mustChangePassword Boolean   @default(true)
+  disabled           Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  lastLoginAt        DateTime?
+
+  sessions          Session[]
+  updatedCreds      Credential[]        @relation("CredentialUpdatedBy")
+  historyChanges    CredentialHistory[]
+  auditLogs         AuditLog[]
+}
+
+model Session {
+  id        String   @id // sha256 of the session token
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // false until the TOTP step is completed for users with 2FA enabled
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  ip        String?
+  userAgent String?
+
+  @@index([userId])
+}
+
+model Box {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  address   String?
+  os        String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  credentials Credential[]
+}
+
+model Credential {
+  id          String         @id @default(cuid())
+  boxId       String
+  box         Box            @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  kind        CredentialKind @default(USER)
+  service     String         @default("")
+  username    String
+  secret      String // encrypted blob, see src/lib/crypto.ts
+  notes       String?
+  version     Int            @default(1)
+  updatedById String?
+  updatedBy   User?          @relation("CredentialUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  history CredentialHistory[]
+
+  @@unique([boxId, service, username])
+}
+
+model CredentialHistory {
+  id           String     @id @default(cuid())
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  secret       String
+  version      Int
+  changedById  String?
+  changedBy    User?      @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  changedAt    DateTime   @default(now())
+
+  @@index([credentialId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  username   String? // denormalized so failed logins / deleted users stay readable
+  action     String
+  targetType String?
+  targetId   String?
+  summary    String?
+  ip         String?
+  meta       Json?
+  at         DateTime @default(now())
+
+  @@index([at])
+  @@index([targetType, targetId])
+}
