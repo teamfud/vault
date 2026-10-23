@@ -18,11 +18,14 @@ export function sealTotpSecret(userId: string, secret: string) {
   return encrypt(secret, aad(userId));
 }
 
-/** Check a code against a raw secret (used during enrollment). */
+/** Check a code against a raw secret; returns the matched time step, or null if wrong or malformed. */
 export async function checkCode(secret: string, token: string, afterTimeStep?: number) {
+  token = token.replace(/\s/g, "");
+  // otplib throws (rather than returning invalid) on anything but 6 digits.
+  if (!/^\d{6}$/.test(token)) return null;
   const result = await verify({
     secret,
-    token: token.replace(/\s/g, ""),
+    token,
     epochTolerance: 30,
     ...(afterTimeStep != null ? { afterTimeStep } : {}),
   });
