@@ -8,7 +8,7 @@ export default async function TotpPage() {
   if (!session) redirect("/login");
   if (session.verified) redirect("/");
   return (
-    <AuthShell title="Two-factor verification">
+    <AuthShell title="prove it (2fa)">
       <TotpForm />
     </AuthShell>
   );

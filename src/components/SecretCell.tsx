@@ -40,7 +40,7 @@ export function SecretCell({ fetchSecret }: { fetchSecret: (mode: "reveal" | "co
 
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <code className="min-w-0 flex-1 truncate rounded bg-panel-2 px-2 py-1 font-mono text-xs select-all">
+      <code className="min-w-0 flex-1 truncate rounded border border-dashed border-muted/60 bg-panel-2 px-2 py-1 font-mono text-xs select-all">
         {value ?? "••••••••••••"}
       </code>
       <button
@@ -49,15 +49,15 @@ export function SecretCell({ fetchSecret }: { fetchSecret: (mode: "reveal" | "co
         disabled={pending}
         className="text-xs text-muted hover:text-fg cursor-pointer"
       >
-        {value === null ? "Reveal" : "Hide"}
+        {value === null ? "peek" : "hide"}
       </button>
       <button
         type="button"
         onClick={() => run("copy")}
         disabled={pending}
-        className={`w-12 text-xs cursor-pointer ${copied ? "text-ok" : error ? "text-danger" : "text-accent hover:underline"}`}
+        className={`w-12 text-xs cursor-pointer ${copied ? "text-ok" : error ? "text-danger" : "text-fg underline decoration-accent decoration-2 underline-offset-2"}`}
       >
-        {copied ? "Copied" : error ? "Error" : "Copy"}
+        {copied ? "got it!" : error ? "oops" : "copy"}
       </button>
     </div>
   );

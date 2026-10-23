@@ -10,7 +10,7 @@ describe("csv", () => {
 
   it("reports missing columns and fields", () => {
     expect(parseCsv("box,username\na,b").errors[0]).toMatch(/password/);
-    expect(parseCsv("box,username,password\na,,x").errors[0]).toMatch(/Line 2: missing username/);
+    expect(parseCsv("box,username,password\na,,x").errors[0]).toMatch(/line 2: missing username/);
   });
 
   it("round-trips tricky passwords", () => {

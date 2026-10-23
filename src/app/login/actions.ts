@@ -9,7 +9,7 @@ import { clientIp } from "@/lib/request";
 import { verifyUserTotp } from "@/lib/totp";
 import type { FormState } from "@/lib/types";
 
-const GENERIC_ERROR = "Invalid username or password.";
+const GENERIC_ERROR = "nope. wrong username or password :(";
 
 export async function login(_: FormState, form: FormData): Promise<FormState> {
   const username = String(form.get("username") ?? "").trim();
@@ -21,7 +21,7 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
   const userKey = `user:${ip}:${username.toLowerCase()}`;
 
   if (isLimited(ipKey, 30) || isLimited(userKey, 10)) {
-    return { error: "Too many failed attempts. Try again in a few minutes." };
+    return { error: "whoa, slow down. too many tries. come back in a few min" };
   }
 
   const user = username ? await db.user.findUnique({ where: { username } }) : null;
@@ -59,13 +59,13 @@ export async function verifyTotp(_: FormState, form: FormData): Promise<FormStat
   if (!(await verifyUserTotp(session.user.id, code))) {
     recordFailure(key);
     await audit({ user: session.user, action: "TOTP_FAIL" });
-    return { error: "Invalid code." };
+    return { error: "wrong code. try again" };
   }
 
   clearFailures(key);
   await markSessionVerified(session.id);
   await db.user.update({ where: { id: session.user.id }, data: { lastLoginAt: new Date() } });
-  await audit({ user: session.user, action: "LOGIN", summary: "with TOTP" });
+  await audit({ user: session.user, action: "LOGIN", summary: "with 2fa" });
   redirect(session.user.mustChangePassword ? "/account?required=1" : "/");
 }
 

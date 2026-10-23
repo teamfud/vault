@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { addCredential, updateCredential } from "../actions";
 import { Button, FormMessage, Input, Label, Select, Textarea } from "@/components/ui";
 import { Generator } from "@/components/Generator";
+import { keepFields } from "@/components/useFormSubmit";
 
 export type CredentialRowData = {
   id: string;
@@ -34,27 +35,27 @@ export function CredentialForm({
   }, [state, onDone]);
 
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form onSubmit={keepFields(action)} className="flex flex-col gap-4">
       {existing ? <input type="hidden" name="id" value={existing.id} /> : <input type="hidden" name="boxId" value={boxId} />}
       <div className="grid grid-cols-2 gap-3">
         <Label>
-          Type
+          type
           <Select name="kind" defaultValue={existing?.kind ?? "USER"}>
-            <option value="USER">User account</option>
-            <option value="SERVICE">Service account</option>
+            <option value="USER">user account</option>
+            <option value="SERVICE">service account</option>
           </Select>
         </Label>
         <Label>
-          Service
-          <Input name="service" defaultValue={existing?.service} placeholder="ssh, mysql, AD, web…" />
+          service
+          <Input name="service" defaultValue={existing?.service} placeholder="ssh, mysql, ad, web…" />
         </Label>
       </div>
       <Label>
-        Username
+        username
         <Input name="username" defaultValue={existing?.username} required autoComplete="off" />
       </Label>
       <Label>
-        {existing ? "New password (leave blank to keep current)" : "Password"}
+        {existing ? "new password (leave blank to keep it)" : "password"}
         <div className="flex gap-2">
           <Input
             name="password"
@@ -66,7 +67,7 @@ export function CredentialForm({
             className="font-mono"
           />
           <Button type="button" variant="secondary" onClick={() => setShow((s) => !s)}>
-            {show ? "Hide" : "Show"}
+            {show ? "hide" : "peek"}
           </Button>
         </div>
       </Label>
@@ -77,16 +78,16 @@ export function CredentialForm({
         }}
       />
       <Label>
-        Notes
-        <Textarea name="notes" defaultValue={existing?.notes ?? ""} placeholder="Where it's used, who rotated it last…" />
+        notes
+        <Textarea name="notes" defaultValue={existing?.notes ?? ""} placeholder="where it's used, lore, etc…" />
       </Label>
       <FormMessage state={state} />
       <div className="flex justify-end gap-2">
         <Button type="button" variant="ghost" onClick={onDone}>
-          Cancel
+          nvm
         </Button>
         <Button type="submit" disabled={pending}>
-          {existing ? "Save" : "Add credential"}
+          {existing ? "save it" : "add it"}
         </Button>
       </div>
     </form>

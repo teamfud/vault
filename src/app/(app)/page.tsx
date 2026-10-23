@@ -28,31 +28,31 @@ export default async function BoxesPage({ searchParams }: PageProps<"/">) {
 
   return (
     <>
-      <PageHeader title="Boxes">
+      <PageHeader title="boxes" sub="pick a box, any box">
         <form className="w-64">
-          <Input name="q" defaultValue={q} placeholder="Search box, IP, service, user…" />
+          <Input name="q" defaultValue={q} placeholder="search box, ip, service, user…" />
         </form>
       </PageHeader>
 
       {boxes.length === 0 ? (
-        <Card className="p-10 text-center text-sm text-muted">
-          {q ? `No boxes match “${q}”.` : "No boxes yet. An admin can add them under Manage boxes or Import."}
+        <Card className="p-10 text-center text-muted">
+          {q ? `no boxes match “${q}” :(` : "no boxes yet. an admin can add some under manage boxes or import :)"}
         </Card>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {boxes.map((box) => (
             <Link key={box.id} href={`/boxes/${box.id}`} className="group">
-              <Card className="h-full p-4 transition group-hover:border-accent">
+              <Card className="h-full p-4 transition-transform group-hover:-translate-y-0.5 group-hover:-rotate-[0.6deg] group-hover:bg-accent/10">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold">{box.name}</p>
+                    <p className="truncate font-display text-xl leading-tight">{box.name}</p>
                     <p className="truncate font-mono text-xs text-muted">{box.address || "—"}</p>
                   </div>
-                  <span className="shrink-0 rounded bg-panel-2 px-2 py-0.5 text-xs text-muted">{box.os || "?"}</span>
+                  <span className="shrink-0 rounded-full border border-muted/60 px-2 text-[11px] leading-[18px] text-muted">{box.os || "os ???"}</span>
                 </div>
                 <div className="mt-4 flex items-center justify-between text-xs text-muted">
                   <span>
-                    <span className="font-semibold text-fg">{box._count.credentials}</span> credential
+                    <span className="font-display text-base text-fg">{box._count.credentials}</span> cred
                     {box._count.credentials === 1 ? "" : "s"}
                   </span>
                   {box.credentials[0] && <span>updated {timeAgo(box.credentials[0].updatedAt)}</span>}

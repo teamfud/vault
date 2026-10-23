@@ -8,7 +8,7 @@ export default async function ManageBoxesPage() {
   const boxes = await db.box.findMany({ orderBy: { name: "asc" }, include: { _count: { select: { credentials: true } } } });
   return (
     <>
-      <PageHeader title="Manage boxes" />
+      <PageHeader title="manage boxes" sub="the stuff we're defending" />
       <BoxesClient
         boxes={boxes.map((b) => ({ id: b.id, name: b.name, address: b.address, os: b.os, notes: b.notes, count: b._count.credentials }))}
       />

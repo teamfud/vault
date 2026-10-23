@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Badge, Button, Card, Input, PageHeader, Select } from "@/components/ui";
+import { Badge, Button, Card, Input, PageHeader, Select, Th, theadClass } from "@/components/ui";
 import type { Prisma } from "@/generated/prisma/client";
 
 const PAGE_SIZE = 100;
@@ -43,57 +43,57 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
 
   return (
     <>
-      <PageHeader title="Audit log">
-        <span className="text-sm text-muted">{total} entries</span>
+      <PageHeader title="audit log" sub="who did what. we see everything 👀">
+        <span className="text-muted">{total} entries</span>
       </PageHeader>
       <form className="mb-4 flex flex-wrap items-end gap-2">
         <Select name="action" defaultValue={action} className="w-48">
-          <option value="">All actions</option>
+          <option value="">all actions</option>
           {ACTIONS.map((a) => (
-            <option key={a}>{a}</option>
+            <option key={a} value={a}>{a.toLowerCase().replace(/_/g, " ")}</option>
           ))}
         </Select>
-        <Input name="user" defaultValue={user} placeholder="User" className="w-40" />
-        <Input name="q" defaultValue={q} placeholder="Box, account, IP…" className="w-56" />
+        <Input name="user" defaultValue={user} placeholder="user" className="w-40" />
+        <Input name="q" defaultValue={q} placeholder="box, account, ip…" className="w-56" />
         <Button type="submit" variant="secondary">
-          Filter
+          filter
         </Button>
         {(action || user || q) && (
           <Link href="/admin/audit" className="px-2 text-sm text-muted hover:text-fg">
-            Clear
+            clear
           </Link>
         )}
       </form>
       <Card className="overflow-x-auto">
-        <table className="w-full min-w-[760px] text-sm">
-          <thead className="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
+        <table className="w-full min-w-[760px]">
+          <thead className={theadClass}>
             <tr>
-              <th className="px-4 py-2.5 font-medium">Time</th>
-              <th className="px-4 py-2.5 font-medium">User</th>
-              <th className="px-4 py-2.5 font-medium">Action</th>
-              <th className="px-4 py-2.5 font-medium">Details</th>
-              <th className="px-4 py-2.5 font-medium">IP</th>
+              <Th>time</Th>
+              <Th>user</Th>
+              <Th>action</Th>
+              <Th>details</Th>
+              <Th>ip</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-border/20">
             {entries.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-muted">
-                  No entries.
+                  nothing here. suspiciously quiet…
                 </td>
               </tr>
             )}
             {entries.map((e) => (
               <tr key={e.id}>
-                <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-muted">
+                <td className="whitespace-nowrap px-4 py-2 text-xs text-muted">
                   {e.at.toISOString().replace("T", " ").slice(0, 19)}
                 </td>
-                <td className="px-4 py-2 font-mono text-xs">{e.username ?? "—"}</td>
+                <td className="px-4 py-2 text-xs">{e.username ?? "—"}</td>
                 <td className="px-4 py-2">
-                  <Badge tone={tone(e.action)}>{e.action}</Badge>
+                  <Badge tone={tone(e.action)}>{e.action.toLowerCase().replace(/_/g, " ")}</Badge>
                 </td>
                 <td className="px-4 py-2 text-xs">{e.summary ?? ""}</td>
-                <td className="px-4 py-2 font-mono text-xs text-muted">{e.ip ?? ""}</td>
+                <td className="px-4 py-2 text-xs text-muted">{e.ip ?? ""}</td>
               </tr>
             ))}
           </tbody>
@@ -101,11 +101,11 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
       </Card>
       {pages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-3 text-sm">
-          {page > 1 && <Link href={link(page - 1)} className="text-accent">← Newer</Link>}
+          {page > 1 && <Link href={link(page - 1)} className="underline decoration-accent decoration-2">← newer</Link>}
           <span className="text-muted">
-            Page {page} of {pages}
+            page {page} of {pages}
           </span>
-          {page < pages && <Link href={link(page + 1)} className="text-accent">Older →</Link>}
+          {page < pages && <Link href={link(page + 1)} className="underline decoration-accent decoration-2">older →</Link>}
         </div>
       )}
     </>

@@ -13,9 +13,9 @@ const createSchema = z.object({
   username: z
     .string()
     .trim()
-    .min(2, "Username is too short")
+    .min(2, "username too short")
     .max(64)
-    .regex(/^[a-zA-Z0-9._-]+$/, "Use letters, digits, dot, dash or underscore"),
+    .regex(/^[a-zA-Z0-9._-]+$/, "letters, digits, dot, dash or underscore only"),
   role: z.enum(["ADMIN", "MEMBER"]),
 });
 
@@ -23,7 +23,7 @@ export async function createUser(_: UserActionState, form: FormData): Promise<Us
   const admin = await requireAdmin();
   const parsed = createSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
-  if (await db.user.findUnique({ where: { username: parsed.data.username } })) return { error: "Username already exists." };
+  if (await db.user.findUnique({ where: { username: parsed.data.username } })) return { error: "that username is taken" };
 
   const tempPassword = generatePassword("shell-safe", 16);
   const user = await db.user.create({
@@ -31,11 +31,11 @@ export async function createUser(_: UserActionState, form: FormData): Promise<Us
   });
   await audit({ user: admin, action: "USER_CREATE", targetType: "user", targetId: user.id, summary: `${user.username} (${user.role})` });
   revalidatePath("/admin/users");
-  return { ok: `Created ${user.username}.`, tempPassword };
+  return { ok: `welcome to the squad, ${user.username}`, tempPassword };
 }
 
 async function target(id: string, adminId: string) {
-  if (id === adminId) throw new Error("You can't change your own account here.");
+  if (id === adminId) throw new Error("u can't change ur own account here");
   return db.user.findUniqueOrThrow({ where: { id } });
 }
 

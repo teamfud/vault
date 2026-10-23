@@ -10,7 +10,7 @@ export function TotpForm() {
     <div className="flex flex-col gap-3">
       <form action={action} className="flex flex-col gap-4">
         <Label>
-          Authenticator code
+          6-digit code from ur authenticator app
           <Input
             name="code"
             inputMode="numeric"
@@ -24,12 +24,12 @@ export function TotpForm() {
         </Label>
         <FormMessage state={state} />
         <Button type="submit" disabled={pending}>
-          Verify
+          verify
         </Button>
       </form>
       <form action={logout}>
         <Button type="submit" variant="ghost" className="w-full">
-          Cancel
+          nvm, go back
         </Button>
       </form>
     </div>

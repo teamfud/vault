@@ -43,13 +43,13 @@ export default async function BoxPage({ params }: PageProps<"/boxes/[id]">) {
   return (
     <>
       <Link href="/" className="text-xs text-muted hover:text-fg">
-        ← All boxes
+        ← all boxes
       </Link>
-      <PageHeader title={box.name}>
-        <span className="font-mono text-sm text-muted">{box.address}</span>
-        {box.os && <span className="rounded bg-panel-2 px-2 py-0.5 text-xs text-muted">{box.os}</span>}
+      <PageHeader title={box.name} sub="the goods">
+        <span className="text-muted">{box.address}</span>
+        {box.os && <span className="rounded-full border border-muted/60 px-2 text-[11px] leading-[18px] text-muted">{box.os}</span>}
       </PageHeader>
-      {box.notes && <p className="-mt-3 mb-5 whitespace-pre-wrap text-sm text-muted">{box.notes}</p>}
+      {box.notes && <p className="-mt-3 mb-5 whitespace-pre-wrap text-muted">{box.notes}</p>}
       <CredentialTable boxId={box.id} rows={rows} isAdmin={user.role === "ADMIN"} />
     </>
   );

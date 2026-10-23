@@ -28,11 +28,11 @@ export function Modal({
       ref={ref}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className={`m-auto w-[calc(100%-2rem)] ${wide ? "max-w-2xl" : "max-w-md"} rounded-lg border border-border bg-panel p-0 text-fg`}
+      className={`m-auto w-[calc(100%-2rem)] ${wide ? "max-w-2xl" : "max-w-md"} rounded-lg border-2 border-border bg-panel p-0 text-fg shadow-sticker-lg`}
     >
-      <div className="flex items-center justify-between border-b border-border px-5 py-3">
-        <h2 className="font-semibold">{title}</h2>
-        <button onClick={onClose} className="text-muted hover:text-fg cursor-pointer" aria-label="Close">
+      <div className="flex items-center justify-between border-b-2 border-border bg-panel-2 px-5 py-3">
+        <h2 className="font-display text-lg">{title}</h2>
+        <button onClick={onClose} className="text-muted hover:text-fg cursor-pointer" aria-label="close">
           ✕
         </button>
       </div>

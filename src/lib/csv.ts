@@ -41,10 +41,10 @@ export function parseCsv(text: string): { rows: CsvRow[]; errors: string[] } {
     skipEmptyLines: "greedy",
     transformHeader: (h) => ALIASES[h.trim().toLowerCase()] ?? h.trim().toLowerCase(),
   });
-  const errors = parsed.errors.map((e) => `Line ${(e.row ?? 0) + 2}: ${e.message}`);
+  const errors = parsed.errors.map((e) => `line ${(e.row ?? 0) + 2}: ${e.message.toLowerCase()}`);
   const fields = parsed.meta.fields ?? [];
   for (const required of ["box", "username", "password"]) {
-    if (!fields.includes(required)) errors.push(`Missing required column “${required}”.`);
+    if (!fields.includes(required)) errors.push(`missing required column “${required}”`);
   }
   if (errors.length) return { rows: [], errors };
 
@@ -64,9 +64,9 @@ export function parseCsv(text: string): { rows: CsvRow[]; errors: string[] } {
       password: r.password ?? "", // not trimmed: whitespace may be significant
       notes: get("notes"),
     };
-    if (!row.box) errors.push(`Line ${line}: missing box.`);
-    else if (!row.username) errors.push(`Line ${line}: missing username.`);
-    else if (!row.password) errors.push(`Line ${line}: missing password.`);
+    if (!row.box) errors.push(`line ${line}: missing box`);
+    else if (!row.username) errors.push(`line ${line}: missing username`);
+    else if (!row.password) errors.push(`line ${line}: missing password`);
     else rows.push(row);
   });
   return { rows, errors };

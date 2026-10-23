@@ -10,20 +10,20 @@ export function ChangePasswordForm() {
   return (
     <form action={action} className="flex flex-col gap-3">
       <Label>
-        Current password
+        current password
         <Input name="current" type="password" autoComplete="current-password" required />
       </Label>
       <Label>
-        New password
+        new password (12+ chars)
         <Input name="next" type="password" autoComplete="new-password" required minLength={12} />
       </Label>
       <Label>
-        Confirm new password
+        new password again
         <Input name="confirm" type="password" autoComplete="new-password" required minLength={12} />
       </Label>
       <FormMessage state={state} />
       <Button type="submit" disabled={pending} className="self-start">
-        Change password
+        change it
       </Button>
     </form>
   );
@@ -38,15 +38,15 @@ export function TotpSetup() {
   if (!setup)
     return (
       <Button variant="secondary" disabled={pending} onClick={() => start(async () => setSetup(await beginTotp()))}>
-        Set up authenticator app
+        set up authenticator app
       </Button>
     );
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm text-muted">Scan this with your authenticator app, then enter the 6-digit code.</p>
+      <p className="text-muted">scan this with ur authenticator app, then type the 6-digit code.</p>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={setup.qr} alt="TOTP QR code" className="size-44 rounded bg-white p-1" />
+      <img src={setup.qr} alt="totp qr code" className="size-44 rounded border-2 border-border bg-white p-1 shadow-sticker [image-rendering:pixelated]" />
       <code className="break-all text-xs text-muted">{setup.secret}</code>
       <form
         className="flex gap-2"
@@ -63,7 +63,7 @@ export function TotpSetup() {
           className="w-32 font-mono"
         />
         <Button type="submit" disabled={pending}>
-          Verify &amp; enable
+          verify &amp; enable
         </Button>
       </form>
       <FormMessage state={state} />
@@ -76,9 +76,9 @@ export function TotpDisable() {
   return (
     <form action={action} className="flex flex-col gap-2">
       <div className="flex gap-2">
-        <Input name="code" inputMode="numeric" placeholder="Current code" className="w-36 font-mono" required />
+        <Input name="code" inputMode="numeric" placeholder="current code" className="w-36 font-mono" required />
         <Button type="submit" variant="danger" disabled={pending}>
-          Disable 2FA
+          turn off 2fa
         </Button>
       </div>
       <FormMessage state={state} />

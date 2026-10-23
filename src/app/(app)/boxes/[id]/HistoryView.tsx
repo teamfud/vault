@@ -13,16 +13,16 @@ export function HistoryView({ credentialId, onDone }: { credentialId: string; on
     getHistory(credentialId).then(setRows);
   }, [credentialId]);
 
-  if (!rows) return <p className="text-sm text-muted">Loading…</p>;
-  if (rows.length === 0) return <p className="text-sm text-muted">No previous versions.</p>;
+  if (!rows) return <p className="text-muted">digging through the archives…</p>;
+  if (rows.length === 0) return <p className="text-muted">no previous versions. fresh :)</p>;
 
   return (
-    <ul className="flex flex-col divide-y divide-border">
+    <ul className="flex flex-col divide-y divide-border/20">
       {rows.map((r) => (
         <li key={r.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0">
           <div className="flex items-center justify-between text-xs text-muted">
             <span>
-              <span className="font-semibold text-fg">v{r.version}</span> · set by {r.changedBy ?? "unknown"} ·{" "}
+              <span className="font-semibold text-fg">v{r.version}</span> · set by {r.changedBy ?? "???"} ·{" "}
               {timeAgo(new Date(r.changedAt))}
             </span>
             <Button
@@ -30,14 +30,14 @@ export function HistoryView({ credentialId, onDone }: { credentialId: string; on
               variant="secondary"
               disabled={pending}
               onClick={() => {
-                if (!confirm(`Restore v${r.version} as the current password?`)) return;
+                if (!confirm(`bring back v${r.version} as the current password?`)) return;
                 start(async () => {
                   await rollback(r.id);
                   onDone();
                 });
               }}
             >
-              Restore
+              restore
             </Button>
           </div>
           <SecretCell fetchSecret={() => revealHistoryEntry(r.id)} />

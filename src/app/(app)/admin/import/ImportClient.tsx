@@ -24,8 +24,8 @@ export function ImportClient() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
-        <label className="inline-flex h-9 cursor-pointer items-center rounded-md border border-border bg-panel-2 px-3.5 text-sm font-medium hover:border-accent">
-          Choose CSV file…
+        <label className="inline-flex h-9 cursor-pointer items-center rounded-md border-2 border-border bg-panel px-4 font-display text-sm shadow-sticker hover:-translate-x-px hover:-translate-y-px">
+          pick a csv…
           <input
             type="file"
             accept=".csv,text/csv"
@@ -40,9 +40,9 @@ export function ImportClient() {
             }}
           />
         </label>
-        <span className="text-xs text-muted">or paste below.</span>
-        <button type="button" className="text-xs text-accent hover:underline cursor-pointer" onClick={() => setText(SAMPLE)}>
-          Insert sample
+        <span className="text-xs text-muted">or paste it below</span>
+        <button type="button" className="text-xs underline decoration-accent decoration-2 cursor-pointer" onClick={() => setText(SAMPLE)}>
+          gimme a sample
         </button>
       </div>
       <Textarea
@@ -58,7 +58,7 @@ export function ImportClient() {
       />
       <div className="flex gap-2">
         <Button variant="secondary" disabled={!text || pending} onClick={() => start(async () => setResult(await previewImport(text)))}>
-          Preview
+          dry run
         </Button>
         <Button
           disabled={!result || result.errors.length > 0 || result.committed || pending}
@@ -70,12 +70,12 @@ export function ImportClient() {
             })
           }
         >
-          Import
+          send it
         </Button>
       </div>
 
       {result && result.errors.length > 0 && (
-        <Card className="border-danger/50 p-4 text-sm text-danger">
+        <Card className="border-danger p-4 text-danger">
           <ul className="list-inside list-disc">
             {result.errors.slice(0, 50).map((e) => (
               <li key={e}>{e}</li>
@@ -86,21 +86,21 @@ export function ImportClient() {
 
       {result && counts && result.errors.length === 0 && (
         <Card className="p-4">
-          <p className="mb-3 text-sm">
-            {result.committed ? <span className="font-medium text-ok">Imported. </span> : "Dry run: "}
+          <p className="mb-3">
+            {result.committed ? <span className="text-ok">imported! </span> : "dry run: "}
             {counts.create} new, {counts.rotate} rotated, {counts.unchanged} unchanged
             {counts.boxes > 0 && `, ${counts.boxes} new box${counts.boxes === 1 ? "" : "es"}`}.
           </p>
           <div className="max-h-80 overflow-y-auto">
             <table className="w-full text-xs">
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border/20">
                 {result.plan.map((p) => (
                   <tr key={p.line}>
                     <td className="py-1.5 pr-3 text-muted">{p.line}</td>
                     <td className="py-1.5 pr-3">
-                      {p.box} {p.newBox && <Badge tone="accent">new box</Badge>}
+                      {p.box} {p.newBox && <Badge tone="accent">new box!</Badge>}
                     </td>
-                    <td className="py-1.5 pr-3 font-mono">{p.username}</td>
+                    <td className="py-1.5 pr-3">{p.username}</td>
                     <td className="py-1.5 pr-3 text-muted">{p.service}</td>
                     <td className="py-1.5">
                       <Badge tone={p.action === "create" ? "ok" : p.action === "rotate" ? "warn" : "neutral"}>{p.action}</Badge>

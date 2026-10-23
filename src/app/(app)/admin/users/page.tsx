@@ -8,7 +8,7 @@ export default async function UsersPage() {
   const users = await db.user.findMany({ orderBy: [{ role: "asc" }, { username: "asc" }] });
   return (
     <>
-      <PageHeader title="Users" />
+      <PageHeader title="users" sub="the squad" />
       <Card className="mb-5 p-5">
         <CreateUserForm />
       </Card>

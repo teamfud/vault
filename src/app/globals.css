@@ -1,32 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #f5f7fb;
+  --bg: #f4f1e8;
   --panel: #ffffff;
-  --panel-2: #eef2f8;
-  --border: #d7deea;
-  --fg: #111827;
-  --muted: #5b6577;
-  --accent: #1d4ed8;
-  --accent-fg: #ffffff;
-  --danger: #b91c1c;
-  --ok: #047857;
-  --warn: #a16207;
+  --panel-2: #ece8dc;
+  --border: #111111;
+  --fg: #111111;
+  --muted: #6b675e;
+  --accent: #c6f432;
+  --accent-fg: #111111;
+  --shadow: #111111;
+  --danger: #e5383b;
+  --ok: #1f9d55;
+  --warn: #c98a00;
+  --dots: rgb(0 0 0 / 0.07);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0a0f1a;
-    --panel: #111827;
-    --panel-2: #172033;
-    --border: #243049;
-    --fg: #e5e9f2;
-    --muted: #8a96ad;
-    --accent: #3b82f6;
-    --accent-fg: #ffffff;
-    --danger: #f87171;
-    --ok: #34d399;
-    --warn: #fbbf24;
+    --bg: #0a0a0a;
+    --panel: #151515;
+    --panel-2: #222222;
+    --border: #f2f2f2;
+    --fg: #f2f2f2;
+    --muted: #9a9a9a;
+    --accent: #c6f432;
+    --accent-fg: #111111;
+    --shadow: #f2f2f2;
+    --danger: #ff6b6b;
+    --ok: #4ade80;
+    --warn: #fcd34d;
+    --dots: rgb(255 255 255 / 0.06);
   }
 }
 
@@ -39,18 +43,41 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+  --color-shadow: var(--shadow);
   --color-danger: var(--danger);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-geist-mono);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-pixel);
+  --shadow-sticker: 3px 3px 0 0 var(--shadow);
+  --shadow-sticker-lg: 5px 5px 0 0 var(--shadow);
 }
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dots) 1px, transparent 1px);
+  background-size: 14px 14px;
   color: var(--fg);
 }
 
+::selection {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
 dialog::backdrop {
-  background: rgb(0 0 0 / 0.55);
+  background: rgb(0 0 0 / 0.6);
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-1.2deg); }
+  75% { transform: rotate(1.2deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hover-wobble:hover {
+    animation: wobble 0.35s ease-in-out;
+  }
 }

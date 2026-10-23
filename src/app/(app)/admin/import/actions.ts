@@ -28,7 +28,7 @@ async function plan(rows: CsvRow[]): Promise<{ plan: PlanRow[]; errors: string[]
   for (const r of rows) {
     const key = `${r.box}\u0000${r.service}\u0000${r.username}`;
     if (seen.has(key)) {
-      errors.push(`Line ${r.line}: duplicate of an earlier row (${r.box} / ${r.username} / ${r.service || "no service"}).`);
+      errors.push(`line ${r.line}: duplicate of an earlier row (${r.box} / ${r.username} / ${r.service || "no service"})`);
       continue;
     }
     seen.add(key);
@@ -48,7 +48,7 @@ async function plan(rows: CsvRow[]): Promise<{ plan: PlanRow[]; errors: string[]
 
 export async function previewImport(text: string): Promise<ImportResult> {
   await requireAdmin();
-  if (text.length > MAX_BYTES) return { errors: ["File is too large (2 MB max)."], plan: [] };
+  if (text.length > MAX_BYTES) return { errors: ["file too big (2 mb max)"], plan: [] };
   const { rows, errors } = parseCsv(text);
   if (errors.length) return { errors, plan: [] };
   return plan(rows);
@@ -56,7 +56,7 @@ export async function previewImport(text: string): Promise<ImportResult> {
 
 export async function commitImport(text: string): Promise<ImportResult> {
   const user = await requireAdmin();
-  if (text.length > MAX_BYTES) return { errors: ["File is too large (2 MB max)."], plan: [] };
+  if (text.length > MAX_BYTES) return { errors: ["file too big (2 mb max)"], plan: [] };
   const { rows, errors: parseErrors } = parseCsv(text);
   if (parseErrors.length) return { errors: parseErrors, plan: [] };
   const { plan: steps, errors } = await plan(rows);

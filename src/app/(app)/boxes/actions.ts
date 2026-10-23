@@ -28,8 +28,8 @@ const credentialSchema = z.object({
   boxId: z.string().min(1),
   kind: z.enum(["USER", "SERVICE"]),
   service: z.string().trim().max(100),
-  username: z.string().trim().min(1, "Username is required").max(200),
-  password: z.string().min(1, "Password is required").max(1000),
+  username: z.string().trim().min(1, "username pls").max(200),
+  password: z.string().min(1, "password pls").max(1000),
   notes: z.string().trim().max(2000).optional(),
 });
 
@@ -39,23 +39,23 @@ export async function addCredential(_: FormState, form: FormData): Promise<FormS
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const box = await db.box.findUnique({ where: { id: parsed.data.boxId } });
-  if (!box) return { error: "Box not found." };
+  if (!box) return { error: "box went missing??" };
   const exists = await db.credential.findFirst({
     where: { boxId: box.id, service: parsed.data.service, username: parsed.data.username },
   });
-  if (exists) return { error: "That username/service already exists on this box. Rotate it instead." };
+  if (exists) return { error: "that username/service already exists on this box. rotate it instead" };
 
   const cred = await createCredential(parsed.data, user.id);
   await audit({ user, action: "CREATE", targetType: "credential", targetId: cred.id, summary: `${box.name} / ${label(cred)}` });
   revalidatePath(`/boxes/${box.id}`);
-  return { ok: "Credential added." };
+  return { ok: "cred added :)" };
 }
 
 const editSchema = z.object({
   id: z.string().min(1),
   kind: z.enum(["USER", "SERVICE"]),
   service: z.string().trim().max(100),
-  username: z.string().trim().min(1, "Username is required").max(200),
+  username: z.string().trim().min(1, "username pls").max(200),
   password: z.string().max(1000),
   notes: z.string().trim().max(2000).optional(),
 });
@@ -68,12 +68,12 @@ export async function updateCredential(_: FormState, form: FormData): Promise<Fo
   const { id, password, ...meta } = parsed.data;
 
   const cred = await db.credential.findUnique({ where: { id }, include: { box: true } });
-  if (!cred) return { error: "Credential not found." };
+  if (!cred) return { error: "cred went missing??" };
 
   const clash = await db.credential.findFirst({
     where: { boxId: cred.boxId, service: meta.service, username: meta.username, id: { not: id } },
   });
-  if (clash) return { error: "Another credential on this box already uses that username/service." };
+  if (clash) return { error: "another cred on this box already uses that username/service" };
 
   // Rotate before touching metadata so the history row keeps the previous editor.
   const rotated = password.length > 0 && password !== revealSecret(cred);
@@ -91,7 +91,7 @@ export async function updateCredential(_: FormState, form: FormData): Promise<Fo
     summary: `${cred.box.name} / ${label(meta)}${rotated ? " — password rotated" : ""}`,
   });
   revalidatePath(`/boxes/${cred.boxId}`);
-  return { ok: rotated ? "Password rotated." : "Saved." };
+  return { ok: rotated ? "password rotated. take that, red team" : "saved" };
 }
 
 export async function deleteCredential(id: string) {

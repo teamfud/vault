@@ -22,12 +22,12 @@ export async function changePassword(_: FormState, form: FormData): Promise<Form
   const next = String(form.get("next") ?? "");
   const confirm = String(form.get("confirm") ?? "");
 
-  if (next.length < MIN_PASSWORD_LENGTH) return { error: `New password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
-  if (next !== confirm) return { error: "Passwords don't match." };
-  if (next === current) return { error: "New password must differ from the current one." };
+  if (next.length < MIN_PASSWORD_LENGTH) return { error: `new password needs ${MIN_PASSWORD_LENGTH}+ characters` };
+  if (next !== confirm) return { error: "those passwords don't match" };
+  if (next === current) return { error: "new password can't be the same as the old one, silly" };
 
   const row = await db.user.findUniqueOrThrow({ where: { id: user.id } });
-  if (!(await verifyPassword(row.passwordHash, current))) return { error: "Current password is incorrect." };
+  if (!(await verifyPassword(row.passwordHash, current))) return { error: "current password is wrong" };
 
   await db.user.update({
     where: { id: user.id },
@@ -37,7 +37,7 @@ export async function changePassword(_: FormState, form: FormData): Promise<Form
   await revokeSessions(user.id, session?.id);
   await audit({ user, action: "PASSWORD_CHANGE", targetType: "user", targetId: user.id });
   if (user.mustChangePassword) redirect("/");
-  return { ok: "Password changed. Other sessions were signed out." };
+  return { ok: "password changed. other sessions got kicked out" };
 }
 
 export async function beginTotp(): Promise<{ secret: string; qr: string }> {
@@ -50,21 +50,21 @@ export async function beginTotp(): Promise<{ secret: string; qr: string }> {
 export async function confirmTotp(secret: string, code: string): Promise<FormState> {
   const user = await requireUser({ allowPasswordChange: true });
   const step = await checkCode(secret, code).catch(() => null);
-  if (step == null) return { error: "Code didn't match. Check your device clock and try again." };
+  if (step == null) return { error: "code didn't match. check ur device clock and try again" };
   await db.user.update({
     where: { id: user.id },
     data: { totpSecret: sealTotpSecret(user.id, secret), totpLastStep: step },
   });
   await audit({ user, action: "TOTP_ENABLE", targetType: "user", targetId: user.id });
   revalidatePath("/account");
-  return { ok: "Two-factor authentication enabled." };
+  return { ok: "2fa on. extra secure now B)" };
 }
 
 export async function disableTotp(_: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser({ allowPasswordChange: true });
-  if (!(await verifyUserTotp(user.id, String(form.get("code") ?? "")))) return { error: "Invalid code." };
+  if (!(await verifyUserTotp(user.id, String(form.get("code") ?? "")))) return { error: "wrong code" };
   await db.user.update({ where: { id: user.id }, data: { totpSecret: null, totpLastStep: null } });
   await audit({ user, action: "TOTP_DISABLE", targetType: "user", targetId: user.id });
   revalidatePath("/account");
-  return { ok: "Two-factor authentication disabled." };
+  return { ok: "2fa off" };
 }

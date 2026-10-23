@@ -12,12 +12,12 @@ export function Generator({ onGenerate }: { onGenerate: (value: string) => void 
       <select
         value={preset}
         onChange={(e) => setPreset(e.target.value as Preset)}
-        className="h-7 rounded border border-border bg-panel px-1.5 text-fg"
-        aria-label="Generator preset"
+        className="h-7 rounded border-2 border-border bg-panel px-1.5 text-fg"
+        aria-label="generator preset"
       >
-        <option value="strong">Strong</option>
-        <option value="shell-safe">Shell-safe</option>
-        <option value="passphrase">Passphrase</option>
+        <option value="strong">strong</option>
+        <option value="shell-safe">shell-safe</option>
+        <option value="passphrase">passphrase</option>
       </select>
       {preset !== "passphrase" && (
         <label className="flex items-center gap-1">
@@ -28,16 +28,16 @@ export function Generator({ onGenerate }: { onGenerate: (value: string) => void 
             max={128}
             value={length}
             onChange={(e) => setLength(Number(e.target.value) || 20)}
-            className="h-7 w-14 rounded border border-border bg-panel px-1.5 text-fg"
+            className="h-7 w-14 rounded border-2 border-border bg-panel px-1.5 text-fg"
           />
         </label>
       )}
       <button
         type="button"
         onClick={() => onGenerate(generatePassword(preset, length))}
-        className="h-7 rounded border border-border bg-panel-2 px-2.5 font-medium text-fg hover:border-accent cursor-pointer"
+        className="h-7 rounded border-2 border-border bg-accent px-2.5 font-display text-accent-fg cursor-pointer active:translate-y-px"
       >
-        Generate
+        generate!
       </button>
     </div>
   );
