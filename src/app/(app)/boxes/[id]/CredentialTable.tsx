@@ -2,13 +2,18 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { deleteCredential, revealCredential } from "../actions";
+import { hashCredential } from "../../tools/actions";
 import { CredentialForm, type CredentialRowData } from "./CredentialForm";
 import { HistoryView } from "./HistoryView";
 import { Badge, Button, Card, timeAgo, Th, theadClass } from "@/components/ui";
 import { Modal } from "@/components/Modal";
 import { SecretCell } from "@/components/SecretCell";
+import { ShadowHash } from "@/components/ShadowHash";
 
-type Dialog = { type: "add" } | { type: "edit"; row: CredentialRowData } | { type: "history"; row: CredentialRowData } | null;
+type Dialog =
+  | { type: "add" }
+  | { type: "edit" | "history" | "hash"; row: CredentialRowData }
+  | null;
 
 export function CredentialTable({ boxId, rows, isAdmin }: { boxId: string; rows: CredentialRowData[]; isAdmin: boolean }) {
   const [dialog, setDialog] = useState<Dialog>(null);
@@ -81,6 +86,9 @@ export function CredentialTable({ boxId, rows, isAdmin }: { boxId: string; rows:
                     <Button size="sm" variant="ghost" onClick={() => setDialog({ type: "history", row })}>
                       history
                     </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setDialog({ type: "hash", row })}>
+                      hash
+                    </Button>
                     {isAdmin && (
                       <Button
                         size="sm"
@@ -111,6 +119,29 @@ export function CredentialTable({ boxId, rows, isAdmin }: { boxId: string; rows:
       </Modal>
       <Modal open={dialog?.type === "history"} onClose={close} title="password history" wide>
         {dialog?.type === "history" && <HistoryView credentialId={dialog.row.id} onDone={close} />}
+      </Modal>
+      <Modal open={dialog?.type === "hash"} onClose={close} title="yescrypt hash" wide>
+        {dialog?.type === "hash" && (
+          <div className="flex flex-col gap-4">
+            <p className="text-muted">
+              hashes the current password for <span className="font-semibold text-fg">{dialog.row.username}</span> so u can set
+              it on the box without typing it there.
+            </p>
+            {dialog.row.kind === "SERVICE" && (
+              <p className="rounded-md border-2 border-warn px-3 py-2 text-xs text-warn">
+                heads up: this is a service cred. if it&apos;s a database or app login (not a linux account), don&apos;t
+                usermod it, u&apos;d change the os user&apos;s password instead. so no commands here, just the hash.
+              </p>
+            )}
+            <ShadowHash
+              key={dialog.row.id}
+              input={`${dialog.row.id}:${dialog.row.version}`}
+              username={dialog.row.username}
+              commands={dialog.row.kind === "USER"}
+              getHash={(cost) => hashCredential(dialog.row.id, cost)}
+            />
+          </div>
+        )}
       </Modal>
     </>
   );

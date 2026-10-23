@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { CopyButton } from "./CopyButton";
 
 const HIDE_AFTER_MS = 30_000;
 
 /** Masked secret with Reveal / Copy. Plaintext is fetched on demand and never cached. */
 export function SecretCell({ fetchSecret }: { fetchSecret: (mode: "reveal" | "copy") => Promise<string> }) {
   const [value, setValue] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState(false);
   const [pending, start] = useTransition();
 
@@ -17,22 +17,11 @@ export function SecretCell({ fetchSecret }: { fetchSecret: (mode: "reveal" | "co
     return () => clearTimeout(t);
   }, [value]);
 
-  useEffect(() => {
-    if (!copied) return;
-    const t = setTimeout(() => setCopied(false), 1500);
-    return () => clearTimeout(t);
-  }, [copied]);
-
-  const run = (mode: "reveal" | "copy") =>
+  const reveal = () =>
     start(async () => {
       try {
         setError(false);
-        const secret = value ?? (await fetchSecret(mode));
-        if (mode === "reveal") setValue(secret);
-        else {
-          await navigator.clipboard.writeText(secret);
-          setCopied(true);
-        }
+        setValue(await fetchSecret("reveal"));
       } catch {
         setError(true);
       }
@@ -45,20 +34,13 @@ export function SecretCell({ fetchSecret }: { fetchSecret: (mode: "reveal" | "co
       </code>
       <button
         type="button"
-        onClick={() => (value === null ? run("reveal") : setValue(null))}
+        onClick={() => (value === null ? reveal() : setValue(null))}
         disabled={pending}
-        className="text-xs text-muted hover:text-fg cursor-pointer"
+        className={`text-xs cursor-pointer ${error ? "text-danger" : "text-muted hover:text-fg"}`}
       >
-        {value === null ? "peek" : "hide"}
+        {value !== null ? "hide" : error ? "oops" : "peek"}
       </button>
-      <button
-        type="button"
-        onClick={() => run("copy")}
-        disabled={pending}
-        className={`w-12 text-xs cursor-pointer ${copied ? "text-ok" : error ? "text-danger" : "text-fg underline decoration-accent decoration-2 underline-offset-2"}`}
-      >
-        {copied ? "got it!" : error ? "oops" : "copy"}
-      </button>
+      <CopyButton disabled={pending} getText={() => value ?? fetchSecret("copy")} />
     </div>
   );
 }

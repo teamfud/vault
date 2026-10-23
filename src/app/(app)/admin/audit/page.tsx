@@ -8,13 +8,13 @@ const PAGE_SIZE = 100;
 
 const ACTIONS = [
   "LOGIN", "LOGIN_FAIL", "LOGOUT", "TOTP_FAIL", "TOTP_ENABLE", "TOTP_DISABLE", "PASSWORD_CHANGE",
-  "REVEAL", "COPY", "CREATE", "UPDATE", "ROLLBACK", "DELETE", "IMPORT", "EXPORT",
+  "REVEAL", "COPY", "HASH", "CREATE", "UPDATE", "ROLLBACK", "DELETE", "IMPORT", "EXPORT",
   "USER_CREATE", "USER_UPDATE", "USER_RESET_PASSWORD", "USER_RESET_TOTP",
 ];
 
 function tone(action: string) {
   if (action.endsWith("FAIL") || action === "DELETE") return "danger" as const;
-  if (action === "REVEAL" || action === "COPY" || action === "EXPORT") return "warn" as const;
+  if (action === "REVEAL" || action === "COPY" || action === "HASH" || action === "EXPORT") return "warn" as const;
   if (["CREATE", "UPDATE", "ROLLBACK", "IMPORT"].includes(action)) return "accent" as const;
   return "neutral" as const;
 }

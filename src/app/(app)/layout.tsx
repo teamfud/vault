@@ -21,6 +21,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           </Link>
           <nav className="order-last -mx-1 flex w-full items-center gap-1 overflow-x-auto px-1 text-sm sm:order-none sm:mx-0 sm:w-auto sm:flex-1 sm:px-0">
             <NavLink href="/">boxes</NavLink>
+            <NavLink href="/tools/hash">hash tool</NavLink>
             {isAdmin && (
               <>
                 <NavLink href="/admin/boxes">manage boxes</NavLink>

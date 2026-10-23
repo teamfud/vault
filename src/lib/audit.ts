@@ -13,6 +13,7 @@ export type AuditAction =
   | "PASSWORD_CHANGE"
   | "REVEAL"
   | "COPY"
+  | "HASH"
   | "CREATE"
   | "UPDATE"
   | "ROLLBACK"
