@@ -24,6 +24,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Its Emscripten glue references a .wasm file the bundler can't resolve (the
+  // module is embedded in the JS), so let Node load it from node_modules.
+  serverExternalPackages: ["yescrypt-wasm"],
   turbopack: {
     rules: {
       "*.css": {
