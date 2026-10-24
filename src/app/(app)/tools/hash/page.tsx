@@ -20,7 +20,7 @@ export default async function HashToolPage() {
           </p>
           <p>
             older boxes (rhel 8, ubuntu 20.04 and earlier) might not know yescrypt. check{" "}
-            <code className="text-fg">grep yescrypt /etc/login.defs</code> or just try logging in after.
+            <code className="text-fg">grep -i yescrypt /etc/login.defs</code> or just try logging in after.
           </p>
         </Card>
       </div>
