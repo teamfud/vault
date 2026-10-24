@@ -5,7 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
-import { ensureBoxToken, findSameName, rotateBoxToken } from "@/lib/artifacts";
+import { ensureBoxToken, findSameName, newFileToken, noFileToken, rotateBoxToken } from "@/lib/artifacts";
 import { EXPIRY_OPTIONS, type Expiry } from "@/lib/expiry";
 import type { FormState } from "@/lib/types";
 
@@ -21,20 +21,25 @@ export async function setArtifactPublic(id: string, expiry: Expiry): Promise<For
   if (!Object.hasOwn(EXPIRY_OPTIONS, expiry)) return { error: "bad expiry" };
   const artifact = await db.artifact.findUnique({ where: { id }, include: { box: true } });
   if (!artifact) return { error: "artifact went missing??" };
-  if (!artifact.box) return { error: "public links live under a box. attach it to one first (edit)" };
 
   const hours = EXPIRY_OPTIONS[expiry];
-  await ensureBoxToken(artifact.box.id);
+  if (artifact.box) await ensureBoxToken(artifact.box.id);
+  // A boxless file gets its own link, fresh each time it's published (changing the expiry keeps it).
+  const ownToken = !artifact.box && !(artifact.public && artifact.publicToken) && newFileToken(id);
   await db.artifact.update({
     where: { id },
-    data: { public: true, publicExpiresAt: hours === null ? null : new Date(Date.now() + hours * 3600_000) },
+    data: {
+      public: true,
+      publicExpiresAt: hours === null ? null : new Date(Date.now() + hours * 3600_000),
+      ...ownToken,
+    },
   });
   await audit({
     user,
     action: "ARTIFACT_PUBLISH",
     targetType: "artifact",
     targetId: id,
-    summary: `${artifact.box.name} / ${artifact.name} — ${hours === null ? "no expiry" : `expires in ${expiry}`}`,
+    summary: `${artifact.box?.name ?? "no box"} / ${artifact.name} — ${hours === null ? "no expiry" : `expires in ${expiry}`}`,
   });
   revalidate(artifact.boxId);
   return { ok: "public :)" };
@@ -42,7 +47,10 @@ export async function setArtifactPublic(id: string, expiry: Expiry): Promise<For
 
 export async function unpublishArtifact(id: string) {
   const user = await requireUser();
-  const artifact = await db.artifact.update({ where: { id }, data: { public: false, publicExpiresAt: null } });
+  const artifact = await db.artifact.update({
+    where: { id },
+    data: { public: false, publicExpiresAt: null, ...noFileToken },
+  });
   await audit({ user, action: "ARTIFACT_UNPUBLISH", targetType: "artifact", targetId: id, summary: artifact.name });
   revalidate(artifact.boxId);
 }
@@ -84,8 +92,8 @@ export async function updateArtifact(_: FormState, form: FormData): Promise<Form
     data: {
       boxId: box?.id ?? null,
       notes: notes || null,
-      // Boxless files can't have a public URL.
-      ...(!box && { public: false, publicExpiresAt: null }),
+      // A public file stays public: under the box's link, or under its own once it leaves the box.
+      ...(moved && (box || !before.public ? noFileToken : newFileToken(id))),
     },
   });
   await audit({

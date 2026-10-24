@@ -129,8 +129,11 @@ model Artifact {
   box             Box?      @relation(fields: [boxId], references: [id], onDelete: SetNull)
   uploadedById    String?
   uploadedBy      User?     @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
-  // Reachable at /d/<box token>/<name> while true, unexpired and on a box.
+  // Reachable while true and unexpired: at /d/<box token>/<name> on a box,
+  // or at /d/<own token>/<name> with no box.
   public          Boolean   @default(false)
+  publicTokenHash String?   @unique // sha256 of the boxless file's own token
+  publicToken     String? // encrypted, AAD "artifact-token:<id>", so the UI can show it again
   publicExpiresAt DateTime?
   publicHits      Int       @default(0)
   createdAt       DateTime  @default(now())

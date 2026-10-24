@@ -9,6 +9,7 @@ export const MAX_ARTIFACT_BYTES = 50 * 1024 * 1024;
 
 const blobAad = (id: string) => `artifact:${id}`;
 const boxTokenAad = (boxId: string) => `box-token:${boxId}`;
+const fileTokenAad = (id: string) => `artifact-token:${id}`;
 const tokenHash = (token: string) => createHash("sha256").update(token).digest("hex");
 
 /** Same box (or both boxless) and same name: the one an upload would replace. */
@@ -74,10 +75,15 @@ export async function readArtifact(id: string): Promise<Buffer> {
   return decryptBytes(Buffer.from(blob.data), blobAad(id));
 }
 
-function newBoxToken(boxId: string) {
+function newToken(aad: string) {
   const token = randomBytes(32).toString("base64url");
-  return { publicTokenHash: tokenHash(token), publicToken: encrypt(token, boxTokenAad(boxId)) };
+  return { publicTokenHash: tokenHash(token), publicToken: encrypt(token, aad) };
 }
+const newBoxToken = (boxId: string) => newToken(boxTokenAad(boxId));
+
+/** Columns giving a boxless file its own fresh link token; any old link dies. */
+export const newFileToken = (id: string) => newToken(fileTokenAad(id));
+export const noFileToken = { publicTokenHash: null, publicToken: null };
 
 /** Give the box a public link token if it doesn't have one yet. */
 export async function ensureBoxToken(boxId: string) {
@@ -93,27 +99,41 @@ export function boxToken(box: { id: string; publicToken: string | null }): strin
   return box.publicToken ? decrypt(box.publicToken, boxTokenAad(box.id)) : null;
 }
 
+function fileToken(a: { id: string; publicToken: string | null }): string | null {
+  return a.publicToken ? decrypt(a.publicToken, fileTokenAad(a.id)) : null;
+}
+
 export function publicPath(token: string, name: string) {
   return `/d/${token}/${encodeURIComponent(name)}`;
 }
 
 /**
- * Resolve /d/<token>/<name>. "bad-token" (no such box link) is what a guesser
- * hits and gets throttled; "missing" is a real box link asking for a file that
- * isn't there or isn't public, e.g. a tool probing for an optional .sig.
+ * Resolve /d/<token>/<name>, where the token is a box's or a boxless file's
+ * own. "bad-token" (neither) is what a guesser hits and gets throttled;
+ * "missing" is a real link asking for a file that isn't there or isn't
+ * public, e.g. a tool probing for an optional .sig.
  */
 export async function findPublicArtifact(token: string, name: string) {
   if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return "bad-token" as const;
-  const box = await db.box.findUnique({ where: { publicTokenHash: tokenHash(token) }, select: { id: true } });
-  if (!box) return "bad-token" as const;
+  const hash = tokenHash(token);
   // Accept the segment whether or not the router already URL-decoded it.
   let decoded = name;
   try {
     decoded = decodeURIComponent(name);
   } catch {}
-  const a =
-    (await db.artifact.findUnique({ where: { boxId_name: { boxId: box.id, name } } })) ??
-    (decoded !== name ? await db.artifact.findUnique({ where: { boxId_name: { boxId: box.id, name: decoded } } }) : null);
+
+  let a;
+  const box = await db.box.findUnique({ where: { publicTokenHash: hash }, select: { id: true } });
+  if (box) {
+    a =
+      (await db.artifact.findUnique({ where: { boxId_name: { boxId: box.id, name } } })) ??
+      (decoded !== name ? await db.artifact.findUnique({ where: { boxId_name: { boxId: box.id, name: decoded } } }) : null);
+  } else {
+    a = await db.artifact.findUnique({ where: { publicTokenHash: hash } });
+    if (!a) return "bad-token" as const;
+    // The token picks the file; the name has to match too, so it can't be swapped for anything.
+    if (a.boxId || (a.name !== name && a.name !== decoded)) return "missing" as const;
+  }
   if (!a?.public || (a.publicExpiresAt && a.publicExpiresAt <= new Date())) return "missing" as const;
   return a;
 }
@@ -145,7 +165,7 @@ export type ArtifactRow = {
   boxName: string | null;
   uploadedBy: string | null;
   createdAt: string;
-  // Only set while public; box tokens never reach the client otherwise.
+  // Only set while public; tokens never reach the client otherwise.
   publicPath: string | null;
   publicExpiresAt: string | null;
   publicHits: number;
@@ -161,8 +181,8 @@ export async function listArtifacts(where: { boxId?: string } = {}): Promise<Art
     },
   });
   return rows.map((a) => {
-    // A box deletion leaves `public` set on a now boxless artifact; it has no URL.
-    const token = a.public && a.box ? boxToken(a.box) : null;
+    // A box deletion leaves `public` set on a now boxless artifact with no token of its own; it has no URL.
+    const token = !a.public ? null : a.box ? boxToken(a.box) : fileToken(a);
     return {
       id: a.id,
       name: a.name,

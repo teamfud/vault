@@ -197,20 +197,20 @@ function PublishForm({ row, onDone }: { row: ArtifactRow; onDone: () => void }) 
   const [state, setState] = useState<FormState>(null);
   const [pending, start] = useTransition();
 
-  if (!row.boxId) {
-    return (
-      <p className="text-muted">
-        public links live under a box, so attach <span className="font-semibold text-fg">{row.name}</span> to one first (edit).
-      </p>
-    );
-  }
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-muted">
-        anyone with <span className="text-fg">{row.boxName}</span>&apos;s box link can download{" "}
-        <span className="font-semibold text-fg">{row.name}</span>, no login. it&apos;s not listed anywhere, but treat the url
-        like a password.
-      </p>
+      {row.boxId ? (
+        <p className="text-muted">
+          anyone with <span className="text-fg">{row.boxName}</span>&apos;s box link can download{" "}
+          <span className="font-semibold text-fg">{row.name}</span>, no login. it&apos;s not listed anywhere, but treat the
+          url like a password.
+        </p>
+      ) : (
+        <p className="text-muted">
+          <span className="font-semibold text-fg">{row.name}</span> gets its own secret url, downloadable with no login.
+          it&apos;s not listed anywhere, but treat it like a password.
+        </p>
+      )}
       <Label>
         expires after
         <Select value={expiry} onChange={(e) => setExpiry(e.target.value as Expiry)}>
