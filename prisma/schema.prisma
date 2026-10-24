@@ -33,6 +33,7 @@ model User {
   updatedCreds      Credential[]        @relation("CredentialUpdatedBy")
   historyChanges    CredentialHistory[]
   auditLogs         AuditLog[]
+  artifacts         Artifact[]
 }
 
 model Session {
@@ -57,7 +58,14 @@ model Box {
   notes     String?
   createdAt DateTime @default(now())
 
+  // Public artifact links are /d/<token>/<filename>; one token per box so a
+  // tool can fetch edr.conf and then edr.conf.sig from the same base URL.
+  // Looked up by hash, kept encrypted (AAD "box-token:<id>") for display.
+  publicTokenHash String? @unique
+  publicToken     String?
+
   credentials Credential[]
+  artifacts   Artifact[]
 }
 
 model Credential {
@@ -108,4 +116,35 @@ model AuditLog {
 
   @@index([at])
   @@index([targetType, targetId])
+}
+
+model Artifact {
+  id              String    @id @default(cuid())
+  name            String // sanitized original filename
+  contentType     String // as reported by the uploader; display only, never served
+  size            Int
+  sha256          String // of the plaintext
+  notes           String?
+  boxId           String?
+  box             Box?      @relation(fields: [boxId], references: [id], onDelete: SetNull)
+  uploadedById    String?
+  uploadedBy      User?     @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  // Reachable at /d/<box token>/<name> while true, unexpired and on a box.
+  public          Boolean   @default(false)
+  publicExpiresAt DateTime?
+  publicHits      Int       @default(0)
+  createdAt       DateTime  @default(now())
+
+  blob ArtifactBlob?
+
+  // Uploading the same name to the same box replaces the file. Postgres
+  // doesn't treat NULLs as equal, so boxless names are kept unique in code.
+  @@unique([boxId, name])
+}
+
+// Kept apart from Artifact so listing artifacts can never pull file bytes.
+model ArtifactBlob {
+  artifactId String   @id
+  artifact   Artifact @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+  data       Bytes // encrypted, AAD "artifact:<id>", see encryptBytes in src/lib/crypto.ts
 }

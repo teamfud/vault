@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { decrypt, encrypt } from "./crypto";
+import { decrypt, decryptBytes, encrypt, encryptBytes } from "./crypto";
 
 const key = randomBytes(32);
 
@@ -32,5 +32,30 @@ describe("crypto", () => {
 
   it("rejects malformed blobs", () => {
     expect(() => decrypt("garbage", "a", key)).toThrow(/Malformed/);
+  });
+});
+
+describe("crypto bytes", () => {
+  it("round-trips", () => {
+    for (const b of [Buffer.alloc(0), Buffer.from("hi"), randomBytes(1 << 20)]) {
+      expect(decryptBytes(encryptBytes(b, "artifact:1", key), "artifact:1", key).equals(b)).toBe(true);
+    }
+  });
+
+  it("rejects a blob bound to a different row", () => {
+    expect(() => decryptBytes(encryptBytes(Buffer.from("x"), "artifact:1", key), "artifact:2", key)).toThrow();
+  });
+
+  it("rejects tampered ciphertext", () => {
+    const blob = encryptBytes(Buffer.from("secret file"), "a", key);
+    blob[blob.length - 1] ^= 1;
+    expect(() => decryptBytes(blob, "a", key)).toThrow();
+  });
+
+  it("rejects truncated or unversioned blobs", () => {
+    expect(() => decryptBytes(Buffer.alloc(10), "a", key)).toThrow("Malformed");
+    const blob = encryptBytes(Buffer.from("x"), "a", key);
+    blob[0] = 9;
+    expect(() => decryptBytes(blob, "a", key)).toThrow("Malformed");
   });
 });

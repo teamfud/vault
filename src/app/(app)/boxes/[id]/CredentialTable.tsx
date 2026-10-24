@@ -9,6 +9,8 @@ import { Badge, Button, Card, timeAgo, Th, theadClass } from "@/components/ui";
 import { Modal } from "@/components/Modal";
 import { SecretCell } from "@/components/SecretCell";
 import { ShadowHash } from "@/components/ShadowHash";
+import { useNow } from "@/components/useNow";
+import { useConfirm } from "@/components/useConfirm";
 
 type Dialog =
   | { type: "add" }
@@ -20,6 +22,8 @@ export function CredentialTable({ boxId, rows, isAdmin }: { boxId: string; rows:
   const [filter, setFilter] = useState<"ALL" | "USER" | "SERVICE">("ALL");
   const [pending, start] = useTransition();
   const close = useCallback(() => setDialog(null), []);
+  const now = useNow();
+  const [confirm, confirmDialog] = useConfirm();
 
   const shown = filter === "ALL" ? rows : rows.filter((r) => r.kind === filter);
 
@@ -76,7 +80,7 @@ export function CredentialTable({ boxId, rows, isAdmin }: { boxId: string; rows:
                 <td className="px-4 py-3 text-xs text-muted">
                   <span className="text-fg">v{row.version}</span> · {row.updatedBy ?? "???"}
                   <br />
-                  {timeAgo(new Date(row.updatedAt))}
+                  {now !== null && timeAgo(new Date(row.updatedAt), now)}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-1">
@@ -95,9 +99,14 @@ export function CredentialTable({ boxId, rows, isAdmin }: { boxId: string; rows:
                         variant="ghost"
                         disabled={pending}
                         className="hover:text-danger"
-                        onClick={() => {
-                          if (confirm(`yeet ${row.username}${row.service ? ` (${row.service})` : ""} and its history? no take-backs`))
-                            start(() => deleteCredential(row.id));
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: "yeet cred",
+                            message: `delete ${row.username}${row.service ? ` (${row.service})` : ""} and its whole password history? no take-backs.`,
+                            confirmLabel: "yeet it",
+                            danger: true,
+                          });
+                          if (ok) start(() => deleteCredential(row.id));
                         }}
                       >
                         yeet
@@ -143,6 +152,7 @@ export function CredentialTable({ boxId, rows, isAdmin }: { boxId: string; rows:
           </div>
         )}
       </Modal>
+      {confirmDialog}
     </>
   );
 }

@@ -9,10 +9,11 @@ Per-box credential vault for [team fud](https://fud.team) in Red vs Blue competi
 - **Rotate with generator**: Strong, Shell-safe (no quotes, `$` or backticks), or Passphrase presets.
 - **History and rollback**: every rotation keeps the previous value; any version can be revealed or restored.
 - **Audit log**: logins, failed logins, reveals, copies, changes, imports and exports, with user and IP.
+- **Artifacts**: upload files (tools, scripts, configs, up to 50 MB), optionally attached to a box. Logged-in users can download them. Files on a box can be made **public** at `https://<vault>/d/<box token>/<filename>`, which works without a login so boxes can fetch them with `curl` or `wget`. Each box has one token and the filename picks the file, so a tool that fetches `<url>` and then `<url>.sig` works. Public files can expire after 1h, 6h, 24h or 72h, or stay up until unpublished. Uploading a file with the same name to the same box replaces it after a confirmation, keeping its URL. Every public download is audited.
 - **CSV import/export**: dry-run preview, then commit. Existing box + service + username rows are rotated; boxes are created as needed.
 - **Accounts**: admins create users (a temporary password is shown once and must be changed at first login). Optional TOTP 2FA per user. Admins can reset passwords/2FA and disable accounts, which kills their sessions immediately.
 
-Roles: **members** can view, reveal, add and rotate credentials. **Admins** can also delete, manage boxes and users, import/export and view the audit log.
+Roles: **members** can view, reveal, add and rotate credentials, and upload, publish and delete artifacts. **Admins** can also delete, manage boxes and users, import/export and view the audit log.
 
 ## Security model
 
@@ -20,6 +21,7 @@ Roles: **members** can view, reveal, add and rotate credentials. **Admins** can 
 - Passwords use argon2id. Sessions are random 256-bit tokens stored as SHA-256 hashes, in `HttpOnly; Secure; SameSite=Strict` cookies, and expire after 12h.
 - Login throttling is per IP and per IP+username, so the red team can't lock blue members out by spraying their usernames.
 - Every page and server action re-checks the session and role (`src/lib/auth.ts`). The proxy redirect is only a convenience.
+- Artifacts are encrypted with the same key (AAD `artifact:<id>`) and stored in Postgres, so they count toward DB size and backups. Each box's public token is 256 bits and never listed anywhere. Only its hash is used for lookup. Unknown, private and expired files all return the same 404. Invalid tokens are throttled per IP, but missing files under a valid token are not, so a box polling for an optional `.sig` doesn't lock itself out. "New box link" rotates the token, and every old URL on that box stops working. Downloads are always served as `application/octet-stream` attachments with a sandbox CSP, so an uploaded HTML or SVG file can't run on the vault origin.
 - Strict security headers: CSP, `frame-ancestors 'none'`, HSTS, `no-store` on app pages.
 
 > ⚠️ **Back up `VAULT_MASTER_KEY` offline before the competition.** If it is lost, every stored secret is unrecoverable. If it leaks along with the database, every secret is exposed. Treat exported CSVs as plaintext secrets.
@@ -38,7 +40,7 @@ npm run dev
 The first admin is created at boot when the users table is empty (from `ADMIN_USERNAME` / `ADMIN_PASSWORD`, min 12 chars); they must change the password on first login.
 
 ```bash
-npm test          # unit tests (crypto, generator, CSV)
+npm test          # unit tests (crypto, generator, CSV, filenames)
 npm run typecheck
 npm run lint
 ```

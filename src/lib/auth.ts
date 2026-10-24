@@ -103,6 +103,16 @@ export async function requireAdmin(): Promise<CurrentUser> {
   return user;
 }
 
+/**
+ * Like requireUser, but for route handlers that should answer with a status
+ * code instead of a redirect. Null means 401.
+ */
+export async function apiUser(): Promise<CurrentUser | null> {
+  const session = await getSession();
+  if (!session?.verified || session.user.mustChangePassword) return null;
+  return session.user;
+}
+
 export async function markSessionVerified(sessionId: string) {
   await db.session.update({ where: { id: sessionId }, data: { verified: true } });
 }

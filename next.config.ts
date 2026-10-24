@@ -36,7 +36,16 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    // Artifact downloads get a sandbox CSP on top of being octet-stream
+    // attachments, so an uploaded .html/.svg can never run as the vault. Later
+    // entries override earlier ones for the same key, and a CSP set by the
+    // route itself would be replaced by the one above.
+    const downloadHeaders = [{ key: "Content-Security-Policy", value: "sandbox; default-src 'none'" }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/d/:path*", headers: downloadHeaders },
+      { source: "/api/artifacts/:path*", headers: downloadHeaders },
+    ];
   },
 };
 

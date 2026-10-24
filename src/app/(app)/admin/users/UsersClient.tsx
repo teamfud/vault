@@ -4,6 +4,8 @@ import { useActionState, useState, useTransition } from "react";
 import { createUser, resetPassword, resetTotp, setDisabled, setRole } from "./actions";
 import { Badge, Button, Card, FormMessage, Input, Label, Select, timeAgo, Th, theadClass } from "@/components/ui";
 import { keepFields } from "@/components/useFormSubmit";
+import { useNow } from "@/components/useNow";
+import { useConfirm } from "@/components/useConfirm";
 
 export type UserRow = {
   id: string;
@@ -55,6 +57,8 @@ export function CreateUserForm() {
 export function UsersTable({ users, selfId }: { users: UserRow[]; selfId: string }) {
   const [pending, start] = useTransition();
   const [temp, setTemp] = useState<{ username: string; password: string } | null>(null);
+  const now = useNow();
+  const [confirm, confirmDialog] = useConfirm();
 
   return (
     <div className="flex flex-col gap-3">
@@ -100,7 +104,7 @@ export function UsersTable({ users, selfId }: { users: UserRow[]; selfId: string
                       {u.mustChangePassword && <Badge tone="warn">temp pw</Badge>}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted">{u.lastLoginAt ? timeAgo(new Date(u.lastLoginAt)) : "never :("}</td>
+                  <td className="px-4 py-3 text-xs text-muted">{u.lastLoginAt ? now !== null && timeAgo(new Date(u.lastLoginAt), now) : "never :("}</td>
                   <td className="px-4 py-3">
                     {!self && (
                       <div className="flex justify-end gap-1">
@@ -108,10 +112,15 @@ export function UsersTable({ users, selfId }: { users: UserRow[]; selfId: string
                           size="sm"
                           variant="secondary"
                           disabled={pending}
-                          onClick={() =>
-                            confirm(`reset ${u.username}'s password and kick them out?`) &&
-                            start(async () => setTemp({ username: u.username, password: await resetPassword(u.id) }))
-                          }
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: "reset password",
+                              message: `reset ${u.username}'s password and kick them out? they'll get a temp password to change.`,
+                              confirmLabel: "reset it",
+                              danger: true,
+                            });
+                            if (ok) start(async () => setTemp({ username: u.username, password: await resetPassword(u.id) }));
+                          }}
                         >
                           reset pw
                         </Button>
@@ -120,7 +129,15 @@ export function UsersTable({ users, selfId }: { users: UserRow[]; selfId: string
                             size="sm"
                             variant="ghost"
                             disabled={pending}
-                            onClick={() => confirm(`remove 2fa for ${u.username}?`) && start(() => resetTotp(u.id))}
+                            onClick={async () => {
+                              const ok = await confirm({
+                                title: "reset 2fa",
+                                message: `remove 2fa for ${u.username}? they can set it up again from their account page.`,
+                                confirmLabel: "remove 2fa",
+                                danger: true,
+                              });
+                              if (ok) start(() => resetTotp(u.id));
+                            }}
                           >
                             reset 2fa
                           </Button>
@@ -142,6 +159,7 @@ export function UsersTable({ users, selfId }: { users: UserRow[]; selfId: string
           </tbody>
         </table>
       </Card>
+      {confirmDialog}
     </div>
   );
 }

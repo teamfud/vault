@@ -103,8 +103,9 @@ export function Th({ className, ...props }: ComponentProps<"th">) {
 
 export const theadClass = "border-b-2 border-border bg-panel-2";
 
-export function timeAgo(d: Date) {
-  const s = Math.round((Date.now() - d.getTime()) / 1000);
+/** Client components should pass `now` from useNow() to avoid hydration mismatches. */
+export function timeAgo(d: Date, now = Date.now()) {
+  const s = Math.round((now - d.getTime()) / 1000);
   if (s < 10) return "just now";
   if (s < 60) return `${s}s ago`;
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;

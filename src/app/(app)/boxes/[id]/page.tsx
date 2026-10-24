@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { PageHeader } from "@/components/ui";
+import { boxToken, listArtifacts } from "@/lib/artifacts";
+import { Card, PageHeader } from "@/components/ui";
+import { ArtifactTable } from "@/components/ArtifactTable";
+import { ArtifactUpload } from "@/components/ArtifactUpload";
+import { BoxPublicLink } from "@/components/BoxPublicLink";
 import { CredentialTable } from "./CredentialTable";
 
 export default async function BoxPage({ params }: PageProps<"/boxes/[id]">) {
@@ -28,6 +32,11 @@ export default async function BoxPage({ params }: PageProps<"/boxes/[id]">) {
     },
   });
   if (!box) notFound();
+  const [artifacts, boxes] = await Promise.all([
+    listArtifacts({ boxId: box.id }),
+    db.box.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+  ]);
+  const token = boxToken(box);
 
   const rows = box.credentials.map((c) => ({
     id: c.id,
@@ -51,6 +60,14 @@ export default async function BoxPage({ params }: PageProps<"/boxes/[id]">) {
       </PageHeader>
       {box.notes && <p className="-mt-3 mb-5 whitespace-pre-wrap text-muted">{box.notes}</p>}
       <CredentialTable boxId={box.id} rows={rows} isAdmin={user.role === "ADMIN"} />
+
+      <h2 className="mt-10 mb-3 font-display text-xl">artifacts</h2>
+      <Card className="mb-5 p-5">
+        <h3 className="mb-3 font-display text-lg">upload to {box.name}</h3>
+        <ArtifactUpload boxId={box.id} boxes={[box]} existing={artifacts} />
+      </Card>
+      <BoxPublicLink boxId={box.id} boxName={box.name} basePath={token && `/d/${token}/`} />
+      <ArtifactTable rows={artifacts} boxes={boxes} showBox={false} />
     </>
   );
 }

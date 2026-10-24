@@ -6,6 +6,7 @@ import { deleteBox, saveBox } from "./actions";
 import { Button, Card, FormMessage, Input, Label, Textarea, Th, theadClass } from "@/components/ui";
 import { Modal } from "@/components/Modal";
 import { keepFields } from "@/components/useFormSubmit";
+import { useConfirm } from "@/components/useConfirm";
 
 export type BoxRow = { id: string; name: string; address: string | null; os: string | null; notes: string | null; count: number };
 
@@ -51,6 +52,7 @@ function BoxForm({ box, onDone }: { box?: BoxRow; onDone: () => void }) {
 export function BoxesClient({ boxes }: { boxes: BoxRow[] }) {
   const [editing, setEditing] = useState<BoxRow | "new" | null>(null);
   const [pending, start] = useTransition();
+  const [confirm, confirmDialog] = useConfirm();
   const close = useCallback(() => setEditing(null), []);
 
   return (
@@ -97,10 +99,15 @@ export function BoxesClient({ boxes }: { boxes: BoxRow[] }) {
                       variant="ghost"
                       className="hover:text-danger"
                       disabled={pending}
-                      onClick={() =>
-                        confirm(`yeet ${b.name} and all ${b.count} of its creds? this can't be undone!!`) &&
-                        start(() => deleteBox(b.id))
-                      }
+                      onClick={async () => {
+                        const ok = await confirm({
+                          title: `yeet ${b.name}`,
+                          message: `this deletes ${b.name} and all ${b.count} of its creds, and kills its public artifact links. its artifacts stay, minus the box. can't be undone!!`,
+                          confirmLabel: "yeet it",
+                          danger: true,
+                        });
+                        if (ok) start(() => deleteBox(b.id));
+                      }}
                     >
                       yeet
                     </Button>
@@ -114,6 +121,7 @@ export function BoxesClient({ boxes }: { boxes: BoxRow[] }) {
       <Modal open={editing !== null} onClose={close} title={editing === "new" ? "new box" : "edit box"}>
         {editing && <BoxForm key={editing === "new" ? "new" : editing.id} box={editing === "new" ? undefined : editing} onDone={close} />}
       </Modal>
+      {confirmDialog}
     </>
   );
 }

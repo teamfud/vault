@@ -23,13 +23,21 @@ export type AuditAction =
   | "USER_CREATE"
   | "USER_UPDATE"
   | "USER_RESET_PASSWORD"
-  | "USER_RESET_TOTP";
+  | "USER_RESET_TOTP"
+  | "ARTIFACT_UPLOAD"
+  | "ARTIFACT_REPLACE"
+  | "ARTIFACT_DOWNLOAD"
+  | "ARTIFACT_PUBLISH"
+  | "ARTIFACT_UNPUBLISH"
+  | "ARTIFACT_DELETE"
+  | "ARTIFACT_LINK_ROTATE"
+  | "PUBLIC_DOWNLOAD";
 
 export async function audit(entry: {
   user: { id: string; username: string } | null;
   username?: string;
   action: AuditAction;
-  targetType?: "credential" | "box" | "user";
+  targetType?: "credential" | "box" | "user" | "artifact";
   targetId?: string;
   summary?: string;
   meta?: Prisma.InputJsonValue;

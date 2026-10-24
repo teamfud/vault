@@ -10,12 +10,14 @@ const ACTIONS = [
   "LOGIN", "LOGIN_FAIL", "LOGOUT", "TOTP_FAIL", "TOTP_ENABLE", "TOTP_DISABLE", "PASSWORD_CHANGE",
   "REVEAL", "COPY", "HASH", "CREATE", "UPDATE", "ROLLBACK", "DELETE", "IMPORT", "EXPORT",
   "USER_CREATE", "USER_UPDATE", "USER_RESET_PASSWORD", "USER_RESET_TOTP",
+  "ARTIFACT_UPLOAD", "ARTIFACT_REPLACE", "ARTIFACT_DOWNLOAD", "ARTIFACT_PUBLISH", "ARTIFACT_UNPUBLISH",
+  "ARTIFACT_LINK_ROTATE", "ARTIFACT_DELETE", "PUBLIC_DOWNLOAD",
 ];
 
 function tone(action: string) {
-  if (action.endsWith("FAIL") || action === "DELETE") return "danger" as const;
-  if (action === "REVEAL" || action === "COPY" || action === "HASH" || action === "EXPORT") return "warn" as const;
-  if (["CREATE", "UPDATE", "ROLLBACK", "IMPORT"].includes(action)) return "accent" as const;
+  if (action.endsWith("FAIL") || action.endsWith("DELETE")) return "danger" as const;
+  if (["REVEAL", "COPY", "HASH", "EXPORT", "ARTIFACT_PUBLISH", "ARTIFACT_LINK_ROTATE", "PUBLIC_DOWNLOAD"].includes(action)) return "warn" as const;
+  if (["CREATE", "UPDATE", "ROLLBACK", "IMPORT", "ARTIFACT_UPLOAD", "ARTIFACT_REPLACE"].includes(action)) return "accent" as const;
   return "neutral" as const;
 }
 

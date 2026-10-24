@@ -11,5 +11,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!login|api/health|_next/static|_next/image|icon.png|apple-icon.png|teamfud.png).*)"],
+  // d/ is the cookie-free public download route. api/artifacts is skipped
+  // because the proxy truncates request bodies over 10MB, which breaks uploads.
+  // Both check access and set no-store themselves.
+  matcher: ["/((?!login|api/health|api/artifacts|d/|_next/static|_next/image|icon.png|apple-icon.png|teamfud.png).*)"],
 };
