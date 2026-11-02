@@ -31,7 +31,8 @@ export type AuditAction =
   | "ARTIFACT_UNPUBLISH"
   | "ARTIFACT_DELETE"
   | "ARTIFACT_LINK_ROTATE"
-  | "PUBLIC_DOWNLOAD";
+  | "PUBLIC_DOWNLOAD"
+  | "RESET";
 
 export async function audit(entry: {
   user: { id: string; username: string } | null;

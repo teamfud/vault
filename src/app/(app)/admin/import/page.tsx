@@ -1,6 +1,8 @@
 import { requireAdmin } from "@/lib/auth";
 import { Card, PageHeader } from "@/components/ui";
 import { ImportClient } from "./ImportClient";
+import { ResetClient } from "./ResetClient";
+import { RESET_PHRASE } from "@/lib/types";
 
 export default async function ImportPage() {
   await requireAdmin();
@@ -29,6 +31,15 @@ export default async function ImportPage() {
           >
             download csv
           </a>
+        </Card>
+        <Card className="h-fit border-danger p-5 lg:col-start-2">
+          <h2 className="mb-1 font-display text-lg text-danger">reset</h2>
+          <p className="mb-4 text-muted">
+            back to a fresh install: deletes every box, cred, cred history, artifact and the audit log.{" "}
+            <strong className="text-fg">users are kept.</strong> export first if u want a backup. type{" "}
+            <code className="text-fg">{RESET_PHRASE}</code> to arm it.
+          </p>
+          <ResetClient />
         </Card>
       </div>
     </>
