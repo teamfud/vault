@@ -19,28 +19,30 @@ export default async function ImportPage() {
           </p>
           <ImportClient />
         </Card>
-        <Card className="h-fit p-5">
-          <h2 className="mb-1 font-display text-lg">export</h2>
-          <p className="mb-4 text-muted">
-            downloads every cred <strong className="text-danger">in plaintext (!!)</strong>. it gets logged. keep the file
-            safe and delete it when ur done.
-          </p>
-          <a
-            href="/api/export"
-            className="inline-flex h-9 items-center rounded-md border-2 border-border bg-panel px-4 font-display text-sm shadow-sticker hover:-translate-x-px hover:-translate-y-px active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
-          >
-            download csv
-          </a>
-        </Card>
-        <Card className="h-fit border-danger p-5 lg:col-start-2">
-          <h2 className="mb-1 font-display text-lg text-danger">reset</h2>
-          <p className="mb-4 text-muted">
-            back to a fresh install: deletes every box, cred, cred history, artifact and the audit log.{" "}
-            <strong className="text-fg">users are kept.</strong> export first if u want a backup. type{" "}
-            <code className="text-fg">{RESET_PHRASE}</code> to arm it.
-          </p>
-          <ResetClient />
-        </Card>
+        <div className="flex flex-col gap-5">
+          <Card className="h-fit p-5">
+            <h2 className="mb-1 font-display text-lg">export</h2>
+            <p className="mb-4 text-muted">
+              downloads every cred <strong className="text-danger">in plaintext (!!)</strong>. it gets logged. keep the file
+              safe and delete it when ur done.
+            </p>
+            <a
+              href="/api/export"
+              className="inline-flex h-9 items-center rounded-md border-2 border-border bg-panel px-4 font-display text-sm shadow-sticker hover:-translate-x-px hover:-translate-y-px active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+            >
+              download csv
+            </a>
+          </Card>
+          <Card className="h-fit border-danger p-5">
+            <h2 className="mb-1 font-display text-lg text-danger">reset</h2>
+            <p className="mb-4 text-muted">
+              back to a fresh install: deletes every box, cred, cred history, artifact and the audit log.{" "}
+              <strong className="text-fg">users are kept.</strong> export first if u want a backup. type{" "}
+              <code className="text-fg">{RESET_PHRASE}</code> to arm it.
+            </p>
+            <ResetClient />
+          </Card>
+        </div>
       </div>
     </>
   );
